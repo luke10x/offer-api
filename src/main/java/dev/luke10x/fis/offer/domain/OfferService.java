@@ -12,8 +12,8 @@ public class OfferService {
         this.repository = repository;
     }
 
-    public void createOffer(UUID offerId, Description description, Money price, Duration duration) {
-        var offer = new Offer(offerId, description, price, duration);
+    public void createOffer(UUID offerId, Description description, Money price, Instant start, Duration duration) {
+        var offer = new Offer(offerId, description, price, start, duration);
         repository.putOffer(offerId, offer);
     }
 

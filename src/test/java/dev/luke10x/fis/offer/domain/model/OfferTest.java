@@ -16,10 +16,10 @@ class OfferTest {
         var offerId = UUID.randomUUID();
         var description = Description.from("New offer");
         var price = Money.from("USD", 100000);
-        var t1 = Instant.now();
-        var t2 = t1.plus(2, ChronoUnit.DAYS);
-        var duration = Duration.between(t1, t2);
-        var offer = new Offer(offerId, description, price, duration);
+        var start = Instant.now();
+        var end = start.plus(2, ChronoUnit.DAYS);
+        var duration = Duration.between(start, end);
+        var offer = new Offer(offerId, description, price, start, duration);
 
         assertEquals(offerId, offer.getOfferId());
         assertEquals("New offer", offer.getDescription().getValue());
@@ -34,10 +34,10 @@ class OfferTest {
         var offerId = UUID.randomUUID();
         var description = Description.from("New offer");
         var price = Money.from("USD", 100000);
-        var t1 = Instant.now();
-        var t2 = t1.plus(2, ChronoUnit.DAYS);
-        var duration = Duration.between(t1, t2);
-        var offer = new Offer(offerId, description, price, duration);
+        var start = Instant.now();
+        var end = start.plus(2, ChronoUnit.DAYS);
+        var duration = Duration.between(start, end);
+        var offer = new Offer(offerId, description, price, start, duration);
 
         offer.cancel();
 

@@ -30,12 +30,12 @@ class OfferServiceTest {
         var offerId = UUID.randomUUID();
         var description = Description.from("New offer");
         var price = Money.from("USD", 100000);
-        var t1 = Instant.now();
-        var t2 = t1.plus(2, ChronoUnit.DAYS);
-        var duration = Duration.between(t1, t2);
+        var start = Instant.now();
+        var end = start.plus(2, ChronoUnit.DAYS);
+        var duration = Duration.between(start, end);
 
         var service = new OfferService(offerRepository);
-        service.createOffer(offerId, description, price, duration);
+        service.createOffer(offerId, description, price, start, duration);
 
         verify(offerRepository).putOffer(
                 argThat(
@@ -45,6 +45,7 @@ class OfferServiceTest {
                         actualOffer -> actualOffer.getOfferId().equals(offerId)
                                 && actualOffer.getDescription().equals(description)
                                 && actualOffer.getPrice().equals(price)
+                                && actualOffer.getStart().equals(start)
                                 && actualOffer.getDuration().equals(duration)
                                 && !actualOffer.isCancelled()
 
@@ -67,10 +68,10 @@ class OfferServiceTest {
         var offerId = UUID.randomUUID();
         var description = Description.from("New offer");
         var price = Money.from("USD", 100000);
-        var t1 = Instant.now();
-        var t2 = t1.plus(2, ChronoUnit.DAYS);
-        var duration = Duration.between(t1, t2);
-        var offerFromRepo = new Offer(offerId, description, price, duration);
+        var start = Instant.now();
+        var end = start.plus(2, ChronoUnit.DAYS);
+        var duration = Duration.between(start, end);
+        var offerFromRepo = new Offer(offerId, description, price, start, duration);
         when(offerRepository.getOffer(any())).thenReturn(offerFromRepo);
 
         var service = new OfferService(offerRepository);
@@ -84,16 +85,16 @@ class OfferServiceTest {
         var offerId = UUID.randomUUID();
         var description = Description.from("New offer");
         var price = Money.from("USD", 100000);
-        var t1 = Instant.now();
-        var t2 = t1.plus(2, ChronoUnit.DAYS);
-        var duration = Duration.between(t1, t2);
-        var offerFromRepo = new Offer(offerId, description, price, duration);
+        var start = Instant.now();
+        var end = start.plus(2, ChronoUnit.DAYS);
+        var duration = Duration.between(start, end);
+        var offerFromRepo = new Offer(offerId, description, price, start, duration);
         when(offerRepository.getOffer(any())).thenReturn(offerFromRepo);
-        var t3 = Instant.now();
+        var cancellationTime = Instant.now();
         assertFalse(offerFromRepo.isCancelled());
 
         var service = new OfferService(offerRepository);
-        service.cancelOffer(offerId, t3);
+        service.cancelOffer(offerId, cancellationTime);
 
         verify(offerRepository).putOffer(
                 argThat(
