@@ -1,5 +1,7 @@
 package dev.luke10x.fis.offer.domain.model;
 
+import java.util.Objects;
+
 public class Money {
     private static enum Currency {
         EUR,
@@ -30,5 +32,19 @@ public class Money {
 
     public String toString() {
         return this.currency + String.format(" %.2f", (double) this.minorUnits / 100);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Money money = (Money) o;
+        return currency == money.currency &&
+                Objects.equals(minorUnits, money.minorUnits);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(currency, minorUnits);
     }
 }
