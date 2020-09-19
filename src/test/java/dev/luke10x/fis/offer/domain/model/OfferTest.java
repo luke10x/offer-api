@@ -35,12 +35,32 @@ class OfferTest {
         var description = Description.from("New offer");
         var price = Money.from("USD", 100000);
         var start = Instant.now();
+        var cancellation = start.plus(1, ChronoUnit.DAYS);
         var end = start.plus(2, ChronoUnit.DAYS);
         var duration = Duration.between(start, end);
         var offer = new Offer(offerId, description, price, start, duration);
 
-        offer.cancel();
+        offer.cancel(cancellation);
 
         assertTrue(offer.isCancelled());
+    }
+
+    @Test
+    void cancelExpiredOffer() {
+        var offerId = UUID.randomUUID();
+        var description = Description.from("New offer");
+        var price = Money.from("USD", 100000);
+        var start = Instant.now();
+        var cancellation = start.plus(3, ChronoUnit.DAYS);
+        var end = start.plus(2, ChronoUnit.DAYS);
+        var duration = Duration.between(start, end);
+        var offer = new Offer(offerId, description, price, start, duration);
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            offer.cancel(cancellation);
+        });
+
+        assertTrue(exception.getMessage().contains("Cannot cancel expired offer"));
+        assertFalse(offer.isCancelled());
     }
 }

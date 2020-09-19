@@ -19,7 +19,7 @@ public class OfferService {
 
     public void cancelOffer(UUID offerId, Instant now) {
         var offer = repository.getOffer(offerId);
-        offer.cancel();
+        offer.cancel(now);
         repository.putOffer(offerId, offer);
     }
 

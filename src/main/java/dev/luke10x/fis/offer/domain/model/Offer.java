@@ -21,7 +21,10 @@ public class Offer {
         cancelled = false;
     }
 
-    public void cancel() {
+    public void cancel(Instant cancellationTime) {
+        var end = start.plus(duration);
+        if (cancellationTime.isAfter(end))
+            throw new UnsupportedOperationException("Cannot cancel expired offer");
         cancelled = true;
     }
 
