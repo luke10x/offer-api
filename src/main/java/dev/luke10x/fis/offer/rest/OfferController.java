@@ -62,5 +62,16 @@ public class OfferController {
                 status
         );
     }
+
+    @DeleteMapping("/offers/{offerId}")
+    public ResponseEntity<String> cancel(@PathVariable UUID offerId) {
+        var now = timeProvider.now();
+
+        service.cancelOffer(offerId, now);
+        return new ResponseEntity<>(
+                "Deleted: " + offerId.toString(),
+                HttpStatus.OK
+        );
+    }
 }
 

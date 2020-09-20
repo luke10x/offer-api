@@ -5,13 +5,11 @@ import dev.luke10x.fis.offer.domain.model.Description;
 import dev.luke10x.fis.offer.domain.model.Money;
 import dev.luke10x.fis.offer.domain.model.Offer;
 import dev.luke10x.fis.offer.rest.request.CreateOfferDTO;
-import dev.luke10x.fis.offer.rest.response.OfferDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -125,5 +123,19 @@ class OfferControllerTest {
         assertEquals(HttpStatus.GONE, response.getStatusCode());
         assertTrue(offerResponse.getCancelled());
         assertFalse(offerResponse.getActive());
+    }
+
+    @Test
+    void cancellOffer() {
+        var offerId = UUID.randomUUID();
+        var now = Instant.now();
+        when(timeProvider.now()).thenReturn(now);
+
+        var controller = new OfferController(service, uuidProvider, timeProvider);
+        var response = controller.cancel(offerId);
+
+        verify(service).cancelOffer(offerId, now);
+        var offerResponse = response.getBody();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

@@ -5,13 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class HTTPIT {
@@ -47,5 +45,9 @@ public class HTTPIT {
 
         var getResponse = this.restTemplate.getForEntity(url + "/" + offerId, String.class);
         assertThat(getResponse.getBody()).contains("Hi!");
+
+        var deleteResponse = this.restTemplate.exchange(url + "/" + offerId, HttpMethod.DELETE, null, String.class);
+        assertThat(deleteResponse.getBody()).contains("Deleted");
+        assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
     }
 }

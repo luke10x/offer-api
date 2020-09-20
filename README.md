@@ -9,7 +9,7 @@ Before an offer has expired users may cancel it.
 - Offers created started from now by default;
 - Money amounts specified in minor units;
 - Allowed currencies are: EUR, GBP, USD;
-- When expired/cancelled/not-started offer is queried, the HTTP status will be "410 Gone"
+- When expired/cancelled/not-started offer queried, the HTTP status is "410 Gone"
 
 ### Usage:
 
@@ -41,4 +41,7 @@ Example expected response:
       "active": true
     }
 
+Cancel offer with:
+
+    curl -XDELETE localhost:8080/offers/71b253e7-1a8f-4626-8369-d9765e130200
 
