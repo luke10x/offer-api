@@ -10,14 +10,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +44,7 @@ class OfferControllerTest {
         Duration duration = Duration.ofSeconds(60 * 60 * 24);
 
         var controller = new OfferController(service, uuidProvider, timeProvider);
-        controller.create(new CreateOfferDTO("New Offer", "USD", 1000, now, 60 * 60 * 24));
+        var response = controller.create(new CreateOfferDTO("New Offer", "USD", 1000, now, 60 * 60 * 24));
 
         verify(service).createOffer(
                 uuid,
@@ -51,6 +53,8 @@ class OfferControllerTest {
                 now,
                 duration
         );
+        assertThat(response.getBody()).contains("Created: " + uuid.toString());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
@@ -68,7 +72,11 @@ class OfferControllerTest {
         when(service.getOffer(offerId)).thenReturn(offerFromService);
 
         var controller = new OfferController(service, uuidProvider, timeProvider);
-        controller.fetch(offerId);
+        var response = controller.fetch(offerId);
+
+        var offerResponse = response.getBody();
+        assertFalse(offerResponse.getExpired());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
@@ -86,7 +94,11 @@ class OfferControllerTest {
         when(service.getOffer(offerId)).thenReturn(offerFromService);
 
         var controller = new OfferController(service, uuidProvider, timeProvider);
-        OfferDto offerResponse = controller.fetch(offerId);
+        var response = controller.fetch(offerId);
+
+        var offerResponse = response.getBody();
+        assertTrue(offerResponse.getExpired());
+        assertEquals(HttpStatus.GONE, response.getStatusCode());
         assertTrue(offerResponse.getExpired());
     }
 
@@ -106,7 +118,11 @@ class OfferControllerTest {
         when(service.getOffer(offerId)).thenReturn(offerFromService);
 
         var controller = new OfferController(service, uuidProvider, timeProvider);
-        OfferDto offerResponse = controller.fetch(offerId);
+        var response = controller.fetch(offerId);
+
+        var offerResponse = response.getBody();
+        assertTrue(offerResponse.getExpired());
+        assertEquals(HttpStatus.GONE, response.getStatusCode());
         assertTrue(offerResponse.getCancelled());
         assertFalse(offerResponse.getActive());
     }

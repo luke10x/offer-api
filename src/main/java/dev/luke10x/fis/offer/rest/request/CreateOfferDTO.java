@@ -1,6 +1,5 @@
 package dev.luke10x.fis.offer.rest.request;
 
-import java.time.Duration;
 import java.time.Instant;
 
 public class CreateOfferDTO {

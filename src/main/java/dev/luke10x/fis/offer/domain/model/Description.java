@@ -8,7 +8,7 @@ public class Description {
     private Description() {}
 
     public static Description from(String value) {
-        if ("".equals(value))
+        if (value == null || "".equals(value))
             throw new IllegalArgumentException("Description cannot be empty");
 
         var description = new Description();

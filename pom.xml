@@ -12,10 +12,10 @@
 	<artifactId>offer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>offer</name>
-	<description>Offers Projecrt</description>
+	<description>Offers Project</description>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>15</java.version>
 	</properties>
 
 	<dependencies>
