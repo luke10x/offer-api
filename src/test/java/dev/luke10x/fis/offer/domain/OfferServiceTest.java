@@ -81,7 +81,7 @@ class OfferServiceTest {
     }
 
     @Test
-    void getsOfferFromRepoCacelsItAndPutsBack() {
+    void getsOfferFromRepoCancelsItAndPutsBack() {
         var offerId = UUID.randomUUID();
         var description = Description.from("New offer");
         var price = Money.from("USD", 100000);

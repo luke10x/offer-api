@@ -1,11 +1,14 @@
 package dev.luke10x.fis.offer.domain;
 
 import dev.luke10x.fis.offer.domain.model.*;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+@Component
 public class OfferService {
     private OfferRepository repository;
     public OfferService(OfferRepository repository) {

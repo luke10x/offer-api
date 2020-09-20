@@ -51,4 +51,16 @@ public class Offer {
     public Boolean isCancelled() {
         return cancelled;
     }
+
+    public Boolean isExpiredOn(Instant now) {
+        var end = start.plus(duration);
+        return now.isAfter(end);
+    }
+
+    public boolean isActiveOn(Instant now) {
+        if (cancelled)
+            return false;
+        var end = start.plus(duration);
+        return now.isAfter(start) && now.isBefore(end);
+    }
 }

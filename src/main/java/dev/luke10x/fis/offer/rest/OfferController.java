@@ -5,14 +5,11 @@ import dev.luke10x.fis.offer.domain.model.Description;
 import dev.luke10x.fis.offer.domain.model.Money;
 import dev.luke10x.fis.offer.domain.model.Offer;
 import dev.luke10x.fis.offer.rest.request.CreateOfferDTO;
+import dev.luke10x.fis.offer.rest.response.OfferDto;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Controller
@@ -38,6 +35,26 @@ public class OfferController {
         service.createOffer(offerId, description, price, start, duration);
 
         return "Created";
+    }
+
+    @GetMapping("/offers/{offerId}")
+    public @ResponseBody OfferDto fetch(@PathVariable UUID offerId) {
+
+        var offer = service.getOffer(offerId);
+
+        var now = timeProvider.now();
+
+        return new OfferDto(
+                offerId,
+                offer.getDescription().getValue(),
+                offer.getPrice().getCurrency(),
+                offer.getPrice().getMinorUnits(),
+                offer.getStart(),
+                offer.getDuration().getSeconds(),
+                offer.isExpiredOn(now),
+                offer.isCancelled(),
+                offer.isActiveOn(now)
+        );
     }
 }
 

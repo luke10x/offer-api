@@ -26,8 +26,12 @@ public class Money {
         return money;
     }
 
-    public Currency getCurrency() {
-        return currency;
+    public String getCurrency() {
+        return currency.name();
+    }
+
+    public Integer getMinorUnits() {
+        return minorUnits;
     }
 
     public String toString() {
