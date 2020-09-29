@@ -1,9 +1,13 @@
 package dev.luke10x.fis.offer.rest;
 
-import dev.luke10x.fis.offer.domain.OfferService;
+import dev.luke10x.fis.offer.domain.command.CancelOfferCommand;
+import dev.luke10x.fis.offer.domain.command.CreateOfferCommand;
+import dev.luke10x.fis.offer.domain.command.OfferAggregate;
+import dev.luke10x.fis.offer.domain.query.OfferProjection;
 import dev.luke10x.fis.offer.domain.model.Description;
 import dev.luke10x.fis.offer.domain.model.Money;
-import dev.luke10x.fis.offer.domain.model.Offer;
+import dev.luke10x.fis.offer.domain.query.OfferSnapshot;
+import dev.luke10x.fis.offer.domain.query.SingleOfferQuery;
 import dev.luke10x.fis.offer.rest.request.CreateOfferDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +29,10 @@ import static org.mockito.Mockito.when;
 class OfferControllerTest {
 
     @Mock
-    OfferService service;
+    OfferAggregate aggregate;
+
+    @Mock
+    OfferProjection projection;
 
     @Mock
     UUIDProvider uuidProvider;
@@ -41,15 +48,17 @@ class OfferControllerTest {
         when(timeProvider.now()).thenReturn(now);
         Duration duration = Duration.ofSeconds(60 * 60 * 24);
 
-        var controller = new OfferController(service, uuidProvider, timeProvider);
+        var controller = new OfferController(aggregate, projection, uuidProvider, timeProvider);
         var response = controller.create(new CreateOfferDTO("New Offer", "USD", 1000, now, 60 * 60 * 24));
 
-        verify(service).createOffer(
-                uuid,
-                Description.from("New Offer"),
-                Money.from("USD", 1000),
-                now,
-                duration
+        verify(aggregate).handleCreateOfferCommand(
+                new CreateOfferCommand(
+                        uuid,
+                        Description.from("New Offer"),
+                        Money.from("USD", 1000),
+                        now,
+                        duration
+                )
         );
         assertThat(response.getBody()).contains("Created: " + uuid.toString());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -65,11 +74,11 @@ class OfferControllerTest {
         var start = now.minus(2, ChronoUnit.HOURS);
         var end = start.plus(2, ChronoUnit.DAYS);
         var duration = Duration.between(start, end);
-        var offerFromService = new Offer(offerId, description, price, start, duration);
+        var offerFromService = new OfferSnapshot(offerId, description, price, start, duration, false);
 
-        when(service.getOffer(offerId)).thenReturn(offerFromService);
+        when(projection.handleSingleOfferQuery(new SingleOfferQuery(offerId))).thenReturn(offerFromService);
 
-        var controller = new OfferController(service, uuidProvider, timeProvider);
+        var controller = new OfferController(aggregate, projection, uuidProvider, timeProvider);
         var response = controller.fetch(offerId);
 
         var offerResponse = response.getBody();
@@ -87,11 +96,11 @@ class OfferControllerTest {
         var start = now.minus(3, ChronoUnit.DAYS);
         var end = start.plus(2, ChronoUnit.DAYS);
         var duration = Duration.between(start, end);
-        var offerFromService = new Offer(offerId, description, price, start, duration);
+        var offerFromService = new OfferSnapshot(offerId, description, price, start, duration, false);
 
-        when(service.getOffer(offerId)).thenReturn(offerFromService);
+        when(projection.handleSingleOfferQuery(new SingleOfferQuery(offerId))).thenReturn(offerFromService);
 
-        var controller = new OfferController(service, uuidProvider, timeProvider);
+        var controller = new OfferController(aggregate, projection, uuidProvider, timeProvider);
         var response = controller.fetch(offerId);
 
         var offerResponse = response.getBody();
@@ -110,12 +119,11 @@ class OfferControllerTest {
         var start = now.minus(3, ChronoUnit.DAYS);
         var end = start.plus(2, ChronoUnit.DAYS);
         var duration = Duration.between(start, end);
-        var offerFromService = new Offer(offerId, description, price, start, duration);
-        offerFromService.cancel(start);
+        var offerFromService = new OfferSnapshot(offerId, description, price, start, duration, true);
 
-        when(service.getOffer(offerId)).thenReturn(offerFromService);
+        when(projection.handleSingleOfferQuery(new SingleOfferQuery(offerId))).thenReturn(offerFromService);
 
-        var controller = new OfferController(service, uuidProvider, timeProvider);
+        var controller = new OfferController(aggregate, projection, uuidProvider, timeProvider);
         var response = controller.fetch(offerId);
 
         var offerResponse = response.getBody();
@@ -131,11 +139,10 @@ class OfferControllerTest {
         var now = Instant.now();
         when(timeProvider.now()).thenReturn(now);
 
-        var controller = new OfferController(service, uuidProvider, timeProvider);
+        var controller = new OfferController(aggregate, projection, uuidProvider, timeProvider);
         var response = controller.cancel(offerId);
 
-        verify(service).cancelOffer(offerId, now);
-        var offerResponse = response.getBody();
+        verify(aggregate).handleCancelOfferCommand(new CancelOfferCommand(offerId, now));
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

@@ -1,8 +1,12 @@
 package dev.luke10x.fis.offer.rest;
 
-import dev.luke10x.fis.offer.domain.OfferService;
+import dev.luke10x.fis.offer.domain.command.CancelOfferCommand;
+import dev.luke10x.fis.offer.domain.command.CreateOfferCommand;
+import dev.luke10x.fis.offer.domain.command.OfferAggregate;
 import dev.luke10x.fis.offer.domain.model.Description;
 import dev.luke10x.fis.offer.domain.model.Money;
+import dev.luke10x.fis.offer.domain.query.OfferProjection;
+import dev.luke10x.fis.offer.domain.query.SingleOfferQuery;
 import dev.luke10x.fis.offer.rest.request.CreateOfferDTO;
 import dev.luke10x.fis.offer.rest.response.OfferDto;
 import org.springframework.http.HttpStatus;
@@ -15,12 +19,14 @@ import java.util.UUID;
 
 @Controller
 public class OfferController {
-    private final OfferService service;
+    private final OfferAggregate aggregate;
+    private final OfferProjection projection;
     private final UUIDProvider uuidProvider;
     private final TimeProvider timeProvider;
 
-    public OfferController(OfferService service, UUIDProvider uuidProvider, TimeProvider timeProvider) {
-        this.service = service;
+    public OfferController(OfferAggregate aggregate, OfferProjection projection,  UUIDProvider uuidProvider, TimeProvider timeProvider) {
+        this.aggregate = aggregate;
+        this.projection = projection;
         this.uuidProvider = uuidProvider;
         this.timeProvider = timeProvider;
     }
@@ -33,7 +39,8 @@ public class OfferController {
         var start = timeProvider.now();
         var duration = Duration.ofSeconds(dto.getDurationInSeconds());
 
-        service.createOffer(offerId, description, price, start, duration);
+        var command = new CreateOfferCommand(offerId, description, price, start, duration);
+        aggregate.handleCreateOfferCommand(command);
 
         return new ResponseEntity<>("Created: " + offerId, HttpStatus.CREATED);
     }
@@ -41,7 +48,8 @@ public class OfferController {
     @GetMapping("/offers/{offerId}")
     public ResponseEntity<OfferDto> fetch(@PathVariable UUID offerId) {
 
-        var offer = service.getOffer(offerId);
+        var Query = new SingleOfferQuery(offerId);
+        var offer = projection.handleSingleOfferQuery(new SingleOfferQuery(offerId));
 
         var now = timeProvider.now();
 
@@ -67,7 +75,8 @@ public class OfferController {
     public ResponseEntity<String> cancel(@PathVariable UUID offerId) {
         var now = timeProvider.now();
 
-        service.cancelOffer(offerId, now);
+        var command = new CancelOfferCommand(offerId, now);
+        aggregate.handleCancelOfferCommand(command);
         return new ResponseEntity<>(
                 "Deleted: " + offerId.toString(),
                 HttpStatus.OK
