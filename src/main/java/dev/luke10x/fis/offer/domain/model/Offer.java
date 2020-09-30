@@ -1,7 +1,10 @@
 package dev.luke10x.fis.offer.domain.model;
 
+import dev.luke10x.fis.offer.domain.event.Event;
+
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class Offer {

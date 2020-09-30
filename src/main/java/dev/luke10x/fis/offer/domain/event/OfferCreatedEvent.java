@@ -1,4 +1,4 @@
-package dev.luke10x.fis.offer.domain.query;
+package dev.luke10x.fis.offer.domain.event;
 
 import dev.luke10x.fis.offer.domain.model.Description;
 import dev.luke10x.fis.offer.domain.model.Money;
@@ -7,22 +7,19 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
-public class OfferSnapshot {
-
+public class OfferCreatedEvent extends Event {
     private UUID offerId;
     private Description description;
     private Money price;
     private Instant start;
     private Duration duration;
-    private Boolean cancelled;
 
-    public OfferSnapshot(UUID offerId, Description description, Money price, Instant start, Duration duration, Boolean cancelled) {
+    public OfferCreatedEvent(UUID offerId, Description description, Money price, Instant start, Duration duration) {
         this.offerId = offerId;
         this.description = description;
         this.price = price;
         this.start = start;
         this.duration = duration;
-        this.cancelled = cancelled;
     }
 
     public UUID getOfferId() {
@@ -43,25 +40,5 @@ public class OfferSnapshot {
 
     public Duration getDuration() {
         return duration;
-    }
-
-    public Boolean isCancelled() {
-        return cancelled;
-    }
-
-    public Boolean isExpiredOn(Instant now) {
-        var end = start.plus(duration);
-        return now.isAfter(end);
-    }
-
-    public boolean isActiveOn(Instant now) {
-        if (cancelled)
-            return false;
-        var end = start.plus(duration);
-        return now.isAfter(start) && now.isBefore(end);
-    }
-
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
     }
 }

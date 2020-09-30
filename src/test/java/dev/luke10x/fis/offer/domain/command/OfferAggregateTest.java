@@ -1,8 +1,10 @@
 package dev.luke10x.fis.offer.domain.command;
 
+import dev.luke10x.fis.offer.domain.event.OfferCancelledEvent;
+import dev.luke10x.fis.offer.domain.event.OfferCreatedEvent;
 import dev.luke10x.fis.offer.domain.model.Description;
 import dev.luke10x.fis.offer.domain.model.Money;
-import dev.luke10x.fis.offer.domain.model.Offer;
+import dev.luke10x.fis.offer.persistence.InMemoryEventStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -11,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,7 +26,7 @@ import static org.mockito.Mockito.when;
 class OfferAggregateTest {
 
     @Mock
-    OfferWriteRepository offerWriteRepository;
+    InMemoryEventStore offerWriteRepository;
 
     @Test
     void putsNewOfferToRepository() {
@@ -37,17 +40,17 @@ class OfferAggregateTest {
         var aggregate = new OfferAggregate(offerWriteRepository);
         aggregate.handleCreateOfferCommand(new CreateOfferCommand(offerId, description, price, start, duration));
 
-        verify(offerWriteRepository).putOffer(
+        verify(offerWriteRepository).addEvent(
                 argThat(
                     actualOfferId -> actualOfferId.equals(offerId)
                 ),
                 argThat(
-                        actualOffer -> actualOffer.getOfferId().equals(offerId)
-                                && actualOffer.getDescription().equals(description)
-                                && actualOffer.getPrice().equals(price)
-                                && actualOffer.getStart().equals(start)
-                                && actualOffer.getDuration().equals(duration)
-                                && !actualOffer.isCancelled()
+                        event -> event instanceof OfferCreatedEvent
+                                && ((OfferCreatedEvent) event).getOfferId().equals(offerId)
+                                && ((OfferCreatedEvent) event).getDescription().equals(description)
+                                && ((OfferCreatedEvent) event).getPrice().equals(price)
+                                && ((OfferCreatedEvent) event).getStart().equals(start)
+                                && ((OfferCreatedEvent) event).getDuration().equals(duration)
                 )
         );
     }
@@ -60,21 +63,16 @@ class OfferAggregateTest {
         var start = Instant.now();
         var end = start.plus(2, ChronoUnit.DAYS);
         var duration = Duration.between(start, end);
-        var offerFromRepo = new Offer(offerId, description, price, start, duration);
-        when(offerWriteRepository.getOffer(any())).thenReturn(offerFromRepo);
+        var event = new OfferCreatedEvent(offerId, description, price, start, duration);
+        when(offerWriteRepository.getOfferEvents(any())).thenReturn(Arrays.asList(event));
         var cancellationTime = Instant.now();
-        assertFalse(offerFromRepo.isCancelled());
 
         var aggregate = new OfferAggregate(offerWriteRepository);
         aggregate.handleCancelOfferCommand(new CancelOfferCommand(offerId, cancellationTime));
 
-        verify(offerWriteRepository).putOffer(
-                argThat(
-                        actualOfferId -> actualOfferId.equals(offerId)
-                ),
-                argThat(
-                        actualOffer -> actualOffer.equals(offerFromRepo) && actualOffer.isCancelled()
-                )
+        verify(offerWriteRepository).addEvent(
+                argThat(actualOfferId -> actualOfferId.equals(offerId)),
+                argThat(actualEvent -> actualEvent instanceof OfferCancelledEvent)
         );
     }
 }
